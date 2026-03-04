@@ -1,0 +1,1 @@
+/home/ahalgana/Documents/Modelado/Chat_Project/project1/target/debug/project1: /home/ahalgana/Documents/Modelado/Chat_Project/project1/src/main.rs
