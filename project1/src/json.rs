@@ -1,6 +1,7 @@
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-struct Point {
+
+struct Todo {
     
 }

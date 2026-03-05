@@ -1,17 +1,19 @@
-//use std::io::{Read, Write};
-use std::net::TcpStream;
+use std::{
+    net::{TcpStream, Shutdown},
+    io::{Read, Write},
+};
 
-fn client_manager(mut stream: TcpStream) {
+pub fn client_manager(mut stream: TcpStream) {
 
-    let mut buffer = [0 as u8; 50];
+    let mut buff = [0 as u8; 1024];
     
-    while match stream.read(&mut buffer) {
+    while match stream.read(&mut buff) {
         Ok(size) => {
             
-            stream.write(&buffer[0..size]).expect("Err: writing response");
+            stream.write(&buff[0..size]).expect("Err: writing response");
             true
         }
-        Err() => {
+        Err(_) => {
             println!("Ocurrio un error, desconectado de {}", stream
              .peer_addr().expect("Err"));
             stream.shutdown(Shutdown::Both).expect("Err");
