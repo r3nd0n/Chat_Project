@@ -1,2 +1,4 @@
 # Ignorar la carpeta target
-/project1/target
+/server/target
+/client/target
+/json_test
