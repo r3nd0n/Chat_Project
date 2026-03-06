@@ -6,7 +6,7 @@ use serde_json::Result;
 
 // Crea el tipo identificdor 
 //
-pub fn id(mut str: String) -> String{
+pub fn id(mut str: String) -> Result{
     let mut usr_name = String;
 
     // aquí tengo que recibir una entrada del ususario para nombre.
