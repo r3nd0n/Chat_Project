@@ -1,8 +1,5 @@
 use std::{io, env,  net::TcpListener, thread};
-
 mod socket;
-
-// Usar un while true para que no se desconecte el usuario:
 
 fn main() {
 
@@ -15,11 +12,7 @@ fn main() {
 
     println!("El servidor está escuchando en el puerto 8080.");
 
-    //Tenemos que introducir una dirección y puerto a partir
-    //del usuario pero esto se debe manejar desde
-    //el lado del cliente y conectarlo con el servidor.
     for stream in listener.incoming() {
-        //incoming regresa un iterador sobre los streams que se han conectado al servidor.
 
         match stream {
             Ok(stream) => {

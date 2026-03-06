@@ -5,23 +5,7 @@ use std::{
     io::{self, BufRead, BufReader, Write}
 };
 
-// Queria usar la estrada estandar para ingresar la dirección del 
-// servidor pero no me está dejando
-//
-//pub fn conexion_dinamica() -> String {
-//
-//    let mut direccion = String::new();
-//    io::stdin().read_line(&mut direccion).expect("Err. lectura de direccion.");
-//
-//    return direccion;
-//}
-
-
 fn main() {
-
-    //println!("Ingresa la dirección y puerto:");
-    //let mut direccion = String::new();
-    //io::stdin().read_line(&mut direccion).expect("Err. lectura de direccion.");
 
     let  arguments: Vec<String> = env::args().collect();
 

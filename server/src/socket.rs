@@ -21,10 +21,6 @@ pub fn client_manager(mut stream: TcpStream) {
         }
     } {}
 
-    // Usados previo al while
-    //let request =String::from_utf8_lossy(&buffer[..]);
-    //println!("Recieved request: {}", request);
-    //let response ="Bienvenido!".as_bytes();
 }
 
 // el servidor recibe
