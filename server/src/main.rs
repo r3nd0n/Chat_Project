@@ -1,11 +1,16 @@
-use std::{io, net::TcpListener, thread};
+use std::{io, env,  net::TcpListener, thread};
 
 mod socket;
 
 // Usar un while true para que no se desconecte el usuario:
 
 fn main() {
-    let listener = TcpListener::bind("127.0.0.1:8080")
+
+    let  arguments: Vec<String> = env::args().collect();
+
+    let direction: &String = &arguments[1];
+
+    let listener = TcpListener::bind(direction)
         .expect("Conexión fallida (no se pudo asociar al puerto \"8080\").");
 
     println!("El servidor está escuchando en el puerto 8080.");

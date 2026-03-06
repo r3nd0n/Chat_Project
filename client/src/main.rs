@@ -1,4 +1,5 @@
 use std::{
+    env,
     net::TcpStream,
     str,
     io::{self, BufRead, BufReader, Write}
@@ -15,13 +16,18 @@ use std::{
 //    return direccion;
 //}
 
+
 fn main() {
 
     //println!("Ingresa la dirección y puerto:");
     //let mut direccion = String::new();
     //io::stdin().read_line(&mut direccion).expect("Err. lectura de direccion.");
 
-    let mut stream = TcpStream::connect("127.0.0.1:8080")
+    let  arguments: Vec<String> = env::args().collect();
+
+    let direction: &String = &arguments[1];
+
+    let mut stream = TcpStream::connect(direction)
      .expect("No se pudo conectar a servidor");
 
     loop {
