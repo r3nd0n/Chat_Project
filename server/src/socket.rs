@@ -8,7 +8,9 @@ pub fn client_manager(mut stream: TcpStream) {
 
     while match stream.read(&mut buf) {
         Ok(size) => {
-            stream.write(&buf[0..size]).expect("Err: writing response");
+            stream
+             .write(&buf[0..size])
+             .expect("Err: writing response");
             true
         }
         Err(_) => {
@@ -16,7 +18,9 @@ pub fn client_manager(mut stream: TcpStream) {
                 "Ocurrio un error, desconectado de {}",
                 stream.peer_addr().expect("Err")
             );
-            stream.shutdown(Shutdown::Both).expect("Err");
+            stream
+             .shutdown(Shutdown::Both)
+             .expect("Err");
             false
         }
     } {}

@@ -4,6 +4,8 @@ use std::{
     str,
     io::{self, BufRead, BufReader, Write}
 };
+use crate::jason_handler::build_identify;
+mod jason_handler;
 
 fn main() {
 
@@ -19,8 +21,15 @@ fn main() {
         let mut buffer : Vec<u8> = Vec::new();
 
         io::stdin().read_line(&mut input).expect("Err. lectura de stdin.");
+        
+        //
+        // Send the JSON to the server
+        // Doc. in:
+        // https://docs.rs/serde_json/1.0.149/serde_json/value/index.html
+        //
+        let json = build_identify(&input);
 
-        stream.write(input.as_bytes()).expect("Err. escritura al servidor.");
+        stream.write(json.as_bytes()).expect("Err. escritura al servidor.");
 
         let mut reader = BufReader::new(&stream);
 

@@ -8,7 +8,7 @@ fn main() {
     let direction: &String = &arguments[1];
 
     let listener = TcpListener::bind(direction)
-        .expect("Conexión fallida (no se pudo asociar al puerto \"8080\").");
+        .expect("Conexión fallida.");
 
     println!("El servidor está escuchando en el puerto 8080.");
 
@@ -16,7 +16,9 @@ fn main() {
 
         match stream {
             Ok(stream) => {
-                println!("Nueva conexión; {}", stream.peer_addr().expect("Err"));
+                println!("Nueva conexión; {}", stream
+                 .peer_addr()
+                 .expect("Err"));
 
                 thread::spawn(move || {
                     //Aquí hay que colocar la función de "sockets.rs"

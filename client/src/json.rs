@@ -12,6 +12,3 @@ pub struct identify{
 pub fn Identificador () -> Result<()> {
     
 }
-
-
-
