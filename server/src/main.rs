@@ -1,5 +1,5 @@
 use std::{collections::{HashMap}, env, io, net::TcpListener, thread};
-mod socket;
+mod client_manager;
 
 
 fn main() {
@@ -19,13 +19,13 @@ fn main() {
 
         match stream {
             Ok(stream) => {
-                println!("Nueva conexión; {}", stream
+                println!("Nueva conexión desde; {}", stream
                  .peer_addr()
                  .expect("Err"));
 
                 thread::spawn(move || {
                     //Aquí hay que colocar la función de "sockets.rs"
-                    socket::client_manager(stream);
+                    client_manager::client_manager(stream);
                 });
             }
             Err(e) => {

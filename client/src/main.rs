@@ -4,8 +4,8 @@ use std::{
     str,
     io::{self, BufRead, BufReader, Write}
 };
-use crate::jason_handler::build_identify;
-mod jason_handler;
+use crate::identify_response::build_identify;
+mod identify_response;
 
 fn main() {
 

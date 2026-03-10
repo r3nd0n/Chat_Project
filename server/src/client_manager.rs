@@ -4,7 +4,7 @@ use std::{
 };
 
 pub fn client_manager(mut stream: TcpStream) {
-    let mut buf = [0 as u8; 1024];
+    let mut buf = [0 as u8; 5120];
 
     while match stream.read(&mut buf) {
         Ok(size) => {
