@@ -1,4 +1,1 @@
-# Ignorar la carpeta target
-/server/target
-/client/target
-/controller/target
+/chat/target
