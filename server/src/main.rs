@@ -1,19 +1,21 @@
-use std::{collections::{HashMap}, env, io, net::TcpListener, thread};
+use std::{env, net::TcpListener, thread};
 mod client_manager;
+pub mod json;
 
 
 fn main() {
-    
-    //let mut book_reviews: HashMap;
+    let arguments: Vec<String> = env::args().collect();
+    if arguments.len() < 2 {
+        eprintln!("Uso: cargo run -- <host:port>");
+        return;
+    }
 
-    let  arguments: Vec<String> = env::args().collect();
-
-    let direction: &String = &arguments[1];
+    let direction = &arguments[1];
 
     let listener = TcpListener::bind(direction)
         .expect("Conexión fallida.");
 
-    println!("El servidor está escuchando en el puerto 8080.");
+    println!("Servidor escuchando en {}", direction);
 
     for stream in listener.incoming() {
 
@@ -24,7 +26,6 @@ fn main() {
                  .expect("Err"));
 
                 thread::spawn(move || {
-                    //Aquí hay que colocar la función de "sockets.rs"
                     client_manager::client_manager(stream);
                 });
             }

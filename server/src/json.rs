@@ -1,16 +1,14 @@
-use std:: io;
 use serde::{Serialize, Deserialize};
-use serde_json::Result;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct identify{
-    #[serde(rename = "type")] //deserializa json type a rust r_type
-    r_type : String,
-    username: String,
+pub struct Identify {
+    #[serde(rename = "type")]
+    pub r_type: String,
+    pub username: String,
 }
 
-pub fn Identificador () -> Result<()> {
-    
+pub fn parse_identify(raw: &str) -> Result<Identify, serde_json::Error> {
+    serde_json::from_str(raw)
 }
 
 

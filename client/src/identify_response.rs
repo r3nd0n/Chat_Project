@@ -3,12 +3,11 @@
 use serde_json::json;
 
 pub fn build_identify(username: &String) -> String {
-    let user = username;
 
     let identifyer = json!({
         "type": "IDENTIFY",
-        "username": user
-    });
+        "username": username
+    }).to_string() + "\n";
 
-    return identifyer.to_string();
+    return identifyer;
 }
