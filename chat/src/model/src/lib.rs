@@ -28,35 +28,60 @@ use serde_json::Result;
 
 
 
-pub mod string_lecture {
+pub mod ser {
     pub mod json_serializer{
+
+        //! Takes the keys and values in a 
+        //! Rust struct to extrat data
+        //! and use it to serialize it to
+        //! a JSON string.
+        pub fn struct_to_json(struc: struct) -> Result<()> {
+            serde_json::to_string(&struct)?;
+
+            Ok(())
+        }
 
         //! Read the json string format to
         //! allow server side validate the 
         //! new user registration.
         pub fn identify_from_view() {
-
+            
         }
     }
 }
 
-pub mod struct_lecture {
+pub mod deser {
 
-    //! Takes the keys and values in a 
-    //! Rust struct to extrat data
-    //! and use it to serialize it to
-    //! a JSON string.
-    pub fn write_json_str(struc: struct) -> Result<()> {
-        serde_json::to_string(&struct)?;
-        Ok(())
-    }
+    
 
     //! Uses a JSON String to fill values
     //! in a Rust struct type.
-    pub fn write_to_struct(_str: &str) -> Result<()> {
+    pub fn json_to_struct(_str: &str) -> Result<()> {
         serde_json::from_str(_str)?;
 
         Ok(())
+    }
+}
+
+
+pub mod json_creator {
+    pub mod identify {
+        
+        pub fn build_success_case(username: String) {
+            
+        }
+    }
+}
+
+pub mod struct_creator {
+    pub mod identify {
+        
+        pub fn build_user(username: String) -> User {
+            User {
+                r_type: "IDENTIFY",
+                username;
+            }
+        }
     }
 }
 

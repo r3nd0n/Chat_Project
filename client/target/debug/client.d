@@ -1,0 +1,1 @@
+/home/ahalgana/Documents/Modelado/Chat_Project/client/target/debug/client: /home/ahalgana/Documents/Modelado/Chat_Project/client/src/identify_response.rs /home/ahalgana/Documents/Modelado/Chat_Project/client/src/main.rs

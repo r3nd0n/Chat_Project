@@ -1,0 +1,14 @@
+/home/ahalgana/Documents/Modelado/Chat_Project/client/target/debug/deps/serde-05e27c16a1a84b4b.d: /home/ahalgana/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/ahalgana/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/ahalgana/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/ahalgana/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/ahalgana/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/ahalgana/Documents/Modelado/Chat_Project/client/target/debug/build/serde-30dfd4c93d7ae6f7/out/private.rs
+
+/home/ahalgana/Documents/Modelado/Chat_Project/client/target/debug/deps/libserde-05e27c16a1a84b4b.rlib: /home/ahalgana/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/ahalgana/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/ahalgana/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/ahalgana/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/ahalgana/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/ahalgana/Documents/Modelado/Chat_Project/client/target/debug/build/serde-30dfd4c93d7ae6f7/out/private.rs
+
+/home/ahalgana/Documents/Modelado/Chat_Project/client/target/debug/deps/libserde-05e27c16a1a84b4b.rmeta: /home/ahalgana/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/ahalgana/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/ahalgana/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/ahalgana/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/ahalgana/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/ahalgana/Documents/Modelado/Chat_Project/client/target/debug/build/serde-30dfd4c93d7ae6f7/out/private.rs
+
+/home/ahalgana/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs:
+/home/ahalgana/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs:
+/home/ahalgana/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs:
+/home/ahalgana/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:
+/home/ahalgana/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs:
+/home/ahalgana/Documents/Modelado/Chat_Project/client/target/debug/build/serde-30dfd4c93d7ae6f7/out/private.rs:
+
+# env-dep:OUT_DIR=/home/ahalgana/Documents/Modelado/Chat_Project/client/target/debug/build/serde-30dfd4c93d7ae6f7/out
