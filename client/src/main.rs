@@ -4,8 +4,8 @@ use std::{
     str,
     io::{self, BufRead, BufReader, Write}
 };
-use crate::identify_response::build_identify;
-mod identify_response;
+use crate::client_msg::new_usr;
+mod client_response;
 
 //
 fn main() {
@@ -30,7 +30,7 @@ fn main() {
          .expect("Err. lectura de stdin.");
         
         let input = input.trim().to_string();
-        let json = build_identify(&input);
+        let json = new_usr(&input);
 
         //! el String JSON se convierte a bytes con as_bytes()
         //!esos bytes se envían por la conexión TCP al servidor

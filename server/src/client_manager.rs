@@ -3,7 +3,7 @@ use std::{
     net::{Shutdown, TcpStream},
 };
 use serde_json::Value;
-use crate::json;
+use crate::structs;
 
 //! el servidor usa stream.read(&mut buf).
 //! 
@@ -49,11 +49,3 @@ pub fn client_manager(mut stream: TcpStream) {
         }
     }{}
 }
-
-// el servidor recibe
-//Leer lo que se esta mandando y recibiendo que son cadenas, esa cadena se debe convertir en un JSON [TYPE]
-//TYPE de pende del tupo de mensaje que se esta reciiemdo .
-// Tenemos que leer que tipo de cadena, leer el tiṕ de cadema yu a aártor de esp va,ps eñeuemdp el tipo de dato.
-// depsue ssigue la logica de la respuesta.
-//
-// Usar un while true para que no se desconecte el usuario

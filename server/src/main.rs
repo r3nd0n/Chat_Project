@@ -1,6 +1,11 @@
-use std::{env, net::TcpListener, thread};
+use std::{
+    env,
+    net::TcpListener,
+    thread,
+    //collections::HashMap,
+};
 mod client_manager;
-pub mod json;
+pub mod structs;
 
 
 fn main() {
