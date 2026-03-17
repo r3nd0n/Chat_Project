@@ -78,4 +78,4 @@ pub fn new_status_response(status: &String, username: &String) -> String{
     }).to_string() + "\n";
 
     return usr_exists;
-}
+} 
