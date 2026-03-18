@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     env,
     net::TcpListener,
     thread,
@@ -6,9 +7,11 @@ use std::{
 };
 
 mod client_manager;
+mod response_chat;
 mod users_collection;
 mod structs_chat;
 
+use crate::client_manager::ConnectedClients;
 use crate::users_collection::ListOfUsers;
 
 
@@ -26,6 +29,7 @@ fn main() {
 
     // Diccionario global de usuarios (compartido entre threads)
     let users = Arc::new(Mutex::new(ListOfUsers::new()));
+    let connected_clients: Arc<Mutex<ConnectedClients>> = Arc::new(Mutex::new(HashMap::new()));
 
     println!("Servidor escuchando en {}", direction);
 
@@ -37,11 +41,12 @@ fn main() {
                  .peer_addr()
                  .expect("Err"));
 
-                // 📌 Clonar el Arc para pasarlo al thread
+                // Clonar el Arc para pasarlo al thread
                 let users_clone = Arc::clone(&users);
+                let connected_clients_clone = Arc::clone(&connected_clients);
                 
                 thread::spawn(move || {
-                    client_manager::client_manager(stream, users_clone);
+                    client_manager::client_manager(stream, users_clone, connected_clients_clone);
                 });
             }
             Err(e) => {
