@@ -42,23 +42,26 @@ fn main() {
 
     println!("Elige un username: ");
 
+    let mut input = String::new();
+    if io::stdin().read_line(&mut input).is_err() {
+        eprintln!("Err. lectura de stdin.");
+        return;
+    }
+
+    let username = input.trim();
+    if username.is_empty() {
+        eprintln!("Username vacio.");
+        return;
+    }
+
+    let json = new_usr(username);
+    if let Err(e) = stream.write_all(json.as_bytes()) {
+        eprintln!("Err. escritura al servidor: {e}");
+        return;
+    }
+
+    // Mantiene el proceso vivo para recibir mensajes asíncronos del servidor.
     loop {
-        let mut input = String::new();
-
-        if io::stdin().read_line(&mut input).is_err() {
-            eprintln!("Err. lectura de stdin.");
-            break;
-        }
-
-        let username = input.trim();
-        if username.is_empty() {
-            continue;
-        }
-
-        let json = new_usr(username);
-        if let Err(e) = stream.write_all(json.as_bytes()) {
-            eprintln!("Err. escritura al servidor: {e}");
-            break;
-        }
+        thread::park();
     }
 }

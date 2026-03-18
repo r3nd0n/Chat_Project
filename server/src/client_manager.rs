@@ -108,6 +108,10 @@ fn handle_request(
 
     match msg_type {
         "IDENTIFY" => {
+            if identified_username.is_some() {
+                return None;
+            }
+
             let identify = parse_identify(raw).ok()?;
             let username = identify.username;
 
