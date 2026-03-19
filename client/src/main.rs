@@ -7,7 +7,7 @@ use std::{
 
 pub mod response_client;
 use crate::response_client::identify::new_usr;
-use crate::response_client::public_text::send_msg;
+use crate::response_client::public_text::{format_public_text_from, send_msg};
 
 fn main() {
     let arguments: Vec<String> = env::args().collect();
@@ -32,7 +32,11 @@ fn main() {
             match reader.read_line(&mut line) {
                 Ok(0) => break,
                 Ok(_) => {
-                    print!("{}", line);
+                    if let Some(formatted) = format_public_text_from(line.trim()) {
+                        println!("{}", formatted);
+                    } else {
+                        print!("{}", line);
+                    }
                 }
                 Err(e) => {
                     eprintln!("Error leyendo del servidor: {e}");
