@@ -7,6 +7,7 @@ use std::{
 
 pub mod response_client;
 use crate::response_client::identify::new_usr;
+use crate::response_client::public_text::send_msg;
 
 fn main() {
     let arguments: Vec<String> = env::args().collect();
@@ -17,7 +18,8 @@ fn main() {
 
     let direction: &String = &arguments[1];
 
-    let mut stream = TcpStream::connect(direction).expect("No se pudo conectar a servidor");
+    let mut stream = TcpStream::connect(direction)
+     .expect("No se pudo conectar a servidor");
     let reader_stream = stream
         .try_clone()
         .expect("No se pudo clonar stream para lectura");
@@ -60,8 +62,24 @@ fn main() {
         return;
     }
 
-    // Mantiene el proceso vivo para recibir mensajes asíncronos del servidor.
+    println!("Conectado. Escribe mensajes para enviarlos como PUBLIC_TEXT.");
+
     loop {
-        thread::park();
+        let mut message = String::new();
+        if io::stdin().read_line(&mut message).is_err() {
+            eprintln!("Err. lectura de stdin.");
+            break;
+        }
+
+        let message = message.trim();
+        if message.is_empty() {
+            continue;
+        }
+
+        let json = send_msg(message);
+        if let Err(e) = stream.write_all(json.as_bytes()) {
+            eprintln!("Err. escritura al servidor: {e}");
+            break;
+        }
     }
 }

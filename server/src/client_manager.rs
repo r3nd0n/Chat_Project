@@ -10,6 +10,7 @@ use crate::response_chat::identify::{
     identify_success_response,
     identify_usr_exists,
 };
+use crate::response_chat::public_text::msg_response;
 use crate::structs_chat::user::{parse_identify, User};
 use crate::users_collection::ListOfUsers;
 
@@ -136,6 +137,14 @@ fn handle_request(
                 broadcast_except(&username, &new_user_message, connected_clients);
                 Some(identify_success_response(&username))
             }
+        }
+        "PUBLIC_TEXT" => {
+            let sender = identified_username.as_ref()?;
+            let text = base_msg.get("text").and_then(Value::as_str)?;
+
+            let public_text_message = msg_response(text, sender);
+            broadcast_except(sender, &public_text_message, connected_clients);
+            None
         }
         _ => None,
     }
