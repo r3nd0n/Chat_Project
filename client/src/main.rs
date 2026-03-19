@@ -8,10 +8,12 @@ use std::{
 
 pub mod response_client;
 pub mod server_reader;
+pub mod usr_validation;
 
 use crate::response_client::identify::new_usr;
 use crate::response_client::public_text::send_msg;
 use crate::server_reader::ServerReader;
+use crate::usr_validation::usr_validation;
 
 fn main() {
     let arguments: Vec<String> = env::args().collect();
@@ -26,7 +28,6 @@ fn main() {
     let reader_stream = stream
         .try_clone()
         .expect("No se pudo clonar stream para lectura");
-
     let (tx, rx) = mpsc::channel();
 
     thread::spawn(move || {
@@ -35,20 +36,9 @@ fn main() {
     });
 
     println!("Elige un username: ");
+    let username = usr_validation();
+    let json = new_usr(&username);
 
-    let mut input = String::new();
-    if io::stdin().read_line(&mut input).is_err() {
-        eprintln!("Err. lectura de stdin.");
-        return;
-    }
-
-    let username = input.trim();
-    if username.is_empty() {
-        eprintln!("Username vacio.");
-        return;
-    }
-
-    let json = new_usr(username);
     if let Err(e) = stream.write_all(json.as_bytes()) {
         eprintln!("Err. escritura al servidor: {e}");
         return;
@@ -68,7 +58,7 @@ fn main() {
         }
     }
 
-    println!("Conectado. Escribe mensajes para enviarlos como PUBLIC_TEXT.");
+    println!("Bienvenido {}! \nComienza a chatear.", username);
 
     loop {
         let mut message = String::new();
