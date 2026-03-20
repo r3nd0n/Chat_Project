@@ -7,6 +7,7 @@ use std::{
 use serde_json::Value;
 
 use crate::response_client::identify::parse_identify_response;
+use crate::response_client::users::parse_user_list;
 
 const ANSI_RESET: &str = "\x1b[0m";
 const USER_COLORS: [&str; 5] = [
@@ -92,6 +93,20 @@ impl ServerReader {
                 let text = value.get("text").and_then(Value::as_str);
                 if let (Some(username), Some(text)) = (username, text) {
                     println!("[privado] {}: {}", self.colorized_username(username), text);
+                } else {
+                    print!("{}", raw);
+                }
+            }
+            Some("USER_LIST") => {
+                if let Some(rows) = parse_user_list(trimmed) {
+                    if rows.is_empty() {
+                        println!("Usuarios conectados: (sin usuarios)");
+                    } else {
+                        println!("Usuarios conectados:");
+                        for (username, status) in rows {
+                            println!("- {} ({})", self.colorized_username(&username), status);
+                        }
+                    }
                 } else {
                     print!("{}", raw);
                 }

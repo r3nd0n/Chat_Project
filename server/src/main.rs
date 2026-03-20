@@ -5,15 +5,16 @@ use std::{
         sync::{Arc, Mutex}, // Para manejar los hilos que usan la misma estructura (Atomic Reference Counted).
         };
 
-mod client_manager;
-mod conection_iterator;
+//mod client_manager;
+//mod conection_iterator;
 mod response_chat;
-mod users_collection;
+mod main_functions;
+//mod users_collection;
 mod structs_chat;
 
-use crate::client_manager::ConnectedClients;
-use crate::conection_iterator::stream_iterator;
-use crate::users_collection::ListOfUsers;
+use crate::main_functions::client_manager::ConnectedClients;
+use crate::main_functions::conection_iterator::stream_iterator;
+use crate::main_functions::users_collection::ListOfUsers;
 
 
 fn main() {

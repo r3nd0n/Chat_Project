@@ -15,8 +15,9 @@ use crate::response_chat::private_text::{
     private_text_no_such_user,
 };
 use crate::response_chat::public_text::msg_response;
+use crate::response_chat::users::get_list;
 use crate::structs_chat::user::{parse_identify, User};
-use crate::users_collection::ListOfUsers;
+use crate::main_functions::users_collection::ListOfUsers;
 
 pub type ConnectedClients = HashMap<String, Arc<Mutex<TcpStream>>>;
 
@@ -85,8 +86,8 @@ fn handle_request(
 
             let identify = parse_identify(raw).ok()?;
             let username = identify.username;
-
             let mut guard = users.lock().ok()?;
+            
             if guard.get_usr(&username).is_some() {
                 Some(identify_usr_exists(&username))
             } else {
@@ -134,6 +135,10 @@ fn handle_request(
             let private_message = private_text_from(sender, text);
             send_to_user(recipient, &private_message, connected_clients);
             None
+        }
+        "USERS" => {
+            identified_username.as_ref()?;
+            Some(get_list(users))
         }
         _ => None,
     }

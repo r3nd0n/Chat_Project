@@ -5,7 +5,7 @@ use std::{
 
 use serde_json::json;
 
-use crate::users_collection::ListOfUsers;
+use crate::main_functions::users_collection::ListOfUsers;
 
 fn user_list_response(users: &Arc<Mutex<ListOfUsers>>) -> String {
     let users_guard = users.lock().expect("Error: users lock poisoned");

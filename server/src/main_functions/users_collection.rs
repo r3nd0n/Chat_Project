@@ -35,10 +35,6 @@ impl ListOfUsers {
   pub fn get_usr(&self, username: &str) -> Option<&User> {
     self.list.get(username)
   }
-
-  //pub fn count(&self) -> usize {
-  //  self.list.len()
-  //} 
 }
 
 

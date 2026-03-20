@@ -1,7 +1,12 @@
 use serde_json::json;
 use serde_json::Value;
+use crate::response_client::users::get_users;
 
 pub fn send_msg(message: &str) -> Result<String, &'static str> {
+    if message == "/users" {
+        return Ok(get_users());
+    }
+
     if message.starts_with("/w") {
         return parse_private_command(message).ok_or("Uso: /w <usuario> <mensaje>");
     }

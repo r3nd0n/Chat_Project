@@ -4,9 +4,9 @@ use std::{
     sync::{Arc, Mutex}
 };
 
-use crate::client_manager;
-use crate::client_manager::ConnectedClients;
-use crate::users_collection::ListOfUsers;
+use crate::main_functions::client_manager;
+use crate::main_functions::client_manager::ConnectedClients;
+use crate::main_functions::users_collection::ListOfUsers;
 
 pub fn stream_iterator(
     listener: TcpListener,
