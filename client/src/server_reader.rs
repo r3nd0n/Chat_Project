@@ -5,7 +5,10 @@ use std::{
 };
 
 use crate::response_client::identify::parse_identify_response;
-use crate::response_client::public_text::format_public_text_from;
+use crate::response_client::public_text::{
+    format_private_text_from,
+    format_public_text_from,
+};
 
 pub struct ServerReader {
     reader: BufReader<TcpStream>,
@@ -47,6 +50,8 @@ impl ServerReader {
         }
 
         if let Some(formatted) = format_public_text_from(trimmed) {
+            println!("{}", formatted);
+        } else if let Some(formatted) = format_private_text_from(trimmed) {
             println!("{}", formatted);
         } else {
             print!("{}", raw);

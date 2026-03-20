@@ -10,15 +10,15 @@ use crate::response_chat::identify::{
     identify_success_response,
     identify_usr_exists,
 };
+use crate::response_chat::private_text::{
+    private_text_from,
+    private_text_no_such_user,
+};
 use crate::response_chat::public_text::msg_response;
 use crate::structs_chat::user::{parse_identify, User};
 use crate::users_collection::ListOfUsers;
 
-
-
 pub type ConnectedClients = HashMap<String, Arc<Mutex<TcpStream>>>;
-
-
 
 pub fn client_manager(
     mut stream: TcpStream,
@@ -45,53 +45,23 @@ pub fn client_manager(
     let mut reader = BufReader::new(reader_stream);
     let mut identified_username: Option<String> = None;
 
-    loop {
-        let mut raw = String::new();
+    io_manager(
+        &mut stream,
+        &mut reader,
+        &users,
+        &connected_clients,
+        &writer_stream,
+        &mut identified_username,
+    );
 
-        match reader.read_line(&mut raw) {
-            Ok(0) => break,
-            Ok(_) => {
-                let response = handle_request(
-                    raw.trim_end(),
-                    &users,
-                    &connected_clients,
-                    &writer_stream,
-                    &mut identified_username,
-                );
-                if let Some(message) = response {
-                    if let Err(e) = stream.write_all(message.as_bytes()) {
-                        eprintln!("Error al enviar respuesta: {e}");
-                        break;
-                    }
-                }
-            }
-            Err(e) => {
-                eprintln!("Error leyendo desde el socket: {e}");
-                break;
-            }
-        }
-    }
-
-    if let Some(username) = identified_username {
-        if let Ok(mut users_guard) = users.lock() {
-            users_guard.remove_usr(&username);
-        }
-
-        if let Ok(mut clients_guard) = connected_clients.lock() {
-            clients_guard.remove(&username);
-        }
-    }
-
-    if let Some(addr) = peer {
-        println!("Cliente desconectado: {addr}");
-    }
-
-    if let Err(e) = stream.shutdown(Shutdown::Both) {
-        eprintln!("Error al cerrar socket: {e}");
-    }
+    cleanup_client(
+        &mut stream,
+        &users,
+        &connected_clients,
+        identified_username,
+        peer,
+    );
 }
-
-
 
 fn handle_request(
     raw: &str,
@@ -146,11 +116,90 @@ fn handle_request(
             broadcast_except(sender, &public_text_message, connected_clients);
             None
         }
+        "TEXT" => {
+            let sender = identified_username.as_ref()?;
+            let recipient = base_msg.get("username").and_then(Value::as_str)?;
+            let text = base_msg.get("text").and_then(Value::as_str)?;
+
+            let recipient_exists = users
+                .lock()
+                .ok()
+                .and_then(|guard| guard.get_usr(recipient).map(|_| ()))
+                .is_some();
+
+            if !recipient_exists {
+                return Some(private_text_no_such_user(recipient));
+            }
+
+            let private_message = private_text_from(sender, text);
+            send_to_user(recipient, &private_message, connected_clients);
+            None
+        }
         _ => None,
     }
 }
 
+fn io_manager(
+    stream: &mut TcpStream,
+    reader: &mut BufReader<TcpStream>,
+    users: &Arc<Mutex<ListOfUsers>>,
+    connected_clients: &Arc<Mutex<ConnectedClients>>,
+    writer_stream: &Arc<Mutex<TcpStream>>,
+    identified_username: &mut Option<String>,
+) {
+    loop {
+        let mut raw = String::new();
 
+        match reader.read_line(&mut raw) {
+            Ok(0) => break,
+            Ok(_) => {
+                let response = handle_request(
+                    raw.trim_end(),
+                    users,
+                    connected_clients,
+                    writer_stream,
+                    identified_username,
+                );
+                if let Some(message) = response {
+                    if let Err(e) = stream.write_all(message.as_bytes()) {
+                        eprintln!("Error al enviar respuesta: {e}");
+                        break;
+                    }
+                }
+            }
+            Err(e) => {
+                eprintln!("Error leyendo desde el socket: {e}");
+                break;
+            }
+        }
+    }
+}
+
+fn cleanup_client(
+    stream: &mut TcpStream,
+    users: &Arc<Mutex<ListOfUsers>>,
+    connected_clients: &Arc<Mutex<ConnectedClients>>,
+    identified_username: Option<String>,
+    peer: Option<std::net::SocketAddr>,
+) {
+    if let Some(username) = identified_username {
+        if let Ok(mut users_guard) = users.lock() {
+            users_guard.remove_usr(&username);
+        }
+
+        if let Ok(mut clients_guard) = connected_clients.lock() {
+            clients_guard.remove(&username);
+        }
+    }
+
+    if let Some(addr) = peer {
+        println!("Cliente desconectado: {addr}");
+    }
+
+    if let Err(e) = stream.shutdown(Shutdown::Both) {
+        eprintln!("Error al cerrar socket: {e}");
+    }
+}
 
 fn broadcast_except(
     excluded_username: &str,
@@ -170,5 +219,133 @@ fn broadcast_except(
         if let Ok(mut socket) = recipient.lock() {
             let _ = socket.write_all(message.as_bytes());
         }
+    }
+}
+
+fn send_to_user(
+    username: &str,
+    message: &str,
+    connected_clients: &Arc<Mutex<ConnectedClients>>,
+) {
+    let recipient = match connected_clients.lock() {
+        Ok(clients_guard) => clients_guard.get(username).cloned(),
+        Err(_) => None,
+    };
+
+    if let Some(socket) = recipient {
+        if let Ok(mut guard) = socket.lock() {
+            let _ = guard.write_all(message.as_bytes());
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Read;
+    use std::net::TcpListener;
+    use std::time::Duration;
+
+    fn tcp_pair() -> (TcpStream, TcpStream) {
+        let listener = TcpListener::bind("127.0.0.1:0").expect("No se pudo crear listener de prueba");
+        let addr = listener
+            .local_addr()
+            .expect("No se pudo obtener direccion local");
+
+        let client = TcpStream::connect(addr).expect("No se pudo conectar cliente de prueba");
+        let (server, _) = listener.accept().expect("No se pudo aceptar conexion");
+
+        (server, client)
+    }
+
+    #[test]
+    fn private_text_returns_no_such_user_when_recipient_missing() {
+        let (writer_server, _writer_client) = tcp_pair();
+
+        let users = Arc::new(Mutex::new(ListOfUsers::new()));
+        let connected_clients: Arc<Mutex<ConnectedClients>> = Arc::new(Mutex::new(HashMap::new()));
+        let writer_stream = Arc::new(Mutex::new(writer_server));
+        let mut identified_username = Some("Alice".to_string());
+
+        let raw = r#"{ "type":"TEXT", "username":"Bob", "text":"Hola" }"#;
+        let response = handle_request(
+            raw,
+            &users,
+            &connected_clients,
+            &writer_stream,
+            &mut identified_username,
+        );
+
+        let payload = response.expect("Debio regresar respuesta NO_SUCH_USER");
+        let json: Value = serde_json::from_str(payload.trim()).expect("JSON invalido en respuesta");
+
+        assert_eq!(json["type"], "RESPONSE");
+        assert_eq!(json["operation"], "TEXT");
+        assert_eq!(json["result"], "NO_SUCH_USER");
+        assert_eq!(json["extra"], "Bob");
+    }
+
+    #[test]
+    fn private_text_sends_text_from_to_connected_recipient() {
+        let (writer_server, _writer_client) = tcp_pair();
+        let (recipient_server, mut recipient_client) = tcp_pair();
+
+        recipient_client
+            .set_read_timeout(Some(Duration::from_millis(500)))
+            .expect("No se pudo configurar timeout");
+
+        let users = Arc::new(Mutex::new(ListOfUsers::new()));
+        {
+            let mut guard = users.lock().expect("No se pudo bloquear users");
+            guard.add_usr(
+                "Alice".to_string(),
+                User {
+                    username: "Alice".to_string(),
+                    status: "ACTIVE".to_string(),
+                },
+            );
+            guard.add_usr(
+                "Bob".to_string(),
+                User {
+                    username: "Bob".to_string(),
+                    status: "ACTIVE".to_string(),
+                },
+            );
+        }
+
+        let connected_clients: Arc<Mutex<ConnectedClients>> = Arc::new(Mutex::new(HashMap::new()));
+        {
+            let mut guard = connected_clients
+                .lock()
+                .expect("No se pudo bloquear connected_clients");
+            guard.insert("Bob".to_string(), Arc::new(Mutex::new(recipient_server)));
+        }
+
+        let writer_stream = Arc::new(Mutex::new(writer_server));
+        let mut identified_username = Some("Alice".to_string());
+
+        let raw = r#"{ "type":"TEXT", "username":"Bob", "text":"Secreto" }"#;
+        let response = handle_request(
+            raw,
+            &users,
+            &connected_clients,
+            &writer_stream,
+            &mut identified_username,
+        );
+
+        assert!(response.is_none());
+
+        let mut buffer = [0_u8; 512];
+        let n = recipient_client
+            .read(&mut buffer)
+            .expect("No se pudo leer mensaje privado");
+        assert!(n > 0);
+
+        let payload = String::from_utf8_lossy(&buffer[..n]);
+        let json: Value = serde_json::from_str(payload.trim()).expect("JSON invalido recibido");
+
+        assert_eq!(json["type"], "TEXT_FROM");
+        assert_eq!(json["username"], "Alice");
+        assert_eq!(json["text"], "Secreto");
     }
 }

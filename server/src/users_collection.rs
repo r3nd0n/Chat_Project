@@ -18,10 +18,6 @@ impl ListOfUsers {
   }
 
   pub fn add_usr(&mut self, username: String, user: User ) {
-    // esto se hace al ingresar al usuario al struct
-    // creado, i.e, en ejecución.
-    //username = user.username;
-
     self.list.insert(username, user);
   }
 
@@ -30,10 +26,6 @@ impl ListOfUsers {
   // @return Some(User)por valor, si el usuario si existe y se elimina.
   // None en caso de no encontrar el usuario requeirdo.
   pub fn remove_usr(&mut self, username: &str ) -> Option<User> {
-    // esto se hace al ingresar al usuario al struct
-    // creado, i.e, en ejecución.
-    //username = user.username;
-
     self.list.remove(username)
   }
 
@@ -41,16 +33,12 @@ impl ListOfUsers {
   // @return Some(&User), si el usuario si existe (referencia).
   // None en caso de no encontrar el usuario requeirdo.
   pub fn get_usr(&self, username: &str) -> Option<&User> {
-    // esto se hace al ingresar al usuario al struct
-    // creado, i.e, en ejecución.
-    //username = user.username;
-
     self.list.get(username)
   }
 
-  pub fn count(&self) -> usize {
-    self.list.len()
-  } 
+  //pub fn count(&self) -> usize {
+  //  self.list.len()
+  //} 
 }
 
 

@@ -1,17 +1,18 @@
 use std::{
-    collections::HashMap,
-    env,
-    net::TcpListener,
-    thread,
-    sync::{Arc, Mutex}, // Para manejar los hilos que usan la misma estructura (Atomic Reference Counted).
-};
+        collections::HashMap,
+        env,
+        net::TcpListener,
+        sync::{Arc, Mutex}, // Para manejar los hilos que usan la misma estructura (Atomic Reference Counted).
+        };
 
 mod client_manager;
+mod conection_iterator;
 mod response_chat;
 mod users_collection;
 mod structs_chat;
 
 use crate::client_manager::ConnectedClients;
+use crate::conection_iterator::stream_iterator;
 use crate::users_collection::ListOfUsers;
 
 
@@ -33,26 +34,5 @@ fn main() {
 
     println!("Servidor escuchando en {}", direction);
 
-    for stream in listener.incoming() {
-
-        match stream {
-            Ok(stream) => {
-                println!("Nueva conexión desde; {}", stream
-                 .peer_addr()
-                 .expect("Err"));
-
-                // Clonar el Arc para pasarlo al thread
-                let users_clone = Arc::clone(&users);
-                let connected_clients_clone = Arc::clone(&connected_clients);
-                
-                thread::spawn(move || {
-                    client_manager::client_manager(stream, users_clone, connected_clients_clone);
-                });
-            }
-            Err(e) => {
-                eprint!("Error: {}", e)
-            }
-        }
-    }
-    drop(listener);
+    stream_iterator(listener, Arc::clone(&users), Arc::clone(&connected_clients));
 }

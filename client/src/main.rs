@@ -72,7 +72,13 @@ fn main() {
             continue;
         }
 
-        let json = send_msg(message);
+        let json = match send_msg(message) {
+            Ok(payload) => payload,
+            Err(msg) => {
+                eprintln!("{msg}");
+                continue;
+            }
+        };
         if let Err(e) = stream.write_all(json.as_bytes()) {
             eprintln!("Err. escritura al servidor: {e}");
             break;
