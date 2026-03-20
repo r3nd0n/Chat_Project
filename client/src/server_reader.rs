@@ -44,7 +44,6 @@ impl ServerReader {
             if let Some(result) = parse_identify_response(trimmed) {
                 let _ = self.tx.send(result.clone());
                 self.identified = true;
-                println!("{}", trimmed);
                 return;
             }
         }
