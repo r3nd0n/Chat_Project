@@ -1,6 +1,7 @@
 //use std:: {io, str};
 //use serde::{Serialize, Deserialize};
 use serde_json::json;
+use serde_json::Value;
 
 fn identify_request(username: &str) -> String {
 
@@ -29,5 +30,17 @@ pub fn parse_identify_response(json_str: &str) -> Option<String> {
         }
         Err(_) => None,
     }
+}
+
+pub fn format_new_user(json_str: &str) -> Option<String> {
+    let val: Value = serde_json::from_str(json_str).ok()?;
+    let msg_type = val.get("type")?.as_str()?;
+
+    if msg_type != "NEW_USER" {
+        return None;
+    }
+
+    let username = val.get("username")?.as_str()?;
+    Some(format!("{} se unio al chat", username))
 }
 

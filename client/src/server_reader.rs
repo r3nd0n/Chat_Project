@@ -1,19 +1,29 @@
 use std::{
+    collections::HashMap,
     io::{BufRead, BufReader},
     net::TcpStream,
     sync::mpsc::Sender,
 };
+use serde_json::Value;
 
 use crate::response_client::identify::parse_identify_response;
-use crate::response_client::public_text::{
-    format_private_text_from,
-    format_public_text_from,
-};
+
+const ANSI_RESET: &str = "\x1b[0m";
+const USER_COLORS: [&str; 5] = [
+
+    "\x1b[31m",	
+    "\x1b[32m",	 
+    "\x1b[33m",	 
+    "\x1b[34m",	 
+    "\x1b[35m",
+];
 
 pub struct ServerReader {
     reader: BufReader<TcpStream>,
     tx: Sender<String>,
     identified: bool,
+    username_colors: HashMap<String, usize>,
+    next_color: usize,
 }
 
 impl ServerReader {
@@ -22,6 +32,8 @@ impl ServerReader {
             reader: BufReader::new(stream),
             tx,
             identified: false,
+            username_colors: HashMap::new(),
+            next_color: 0,
         }
     }
 
@@ -48,12 +60,58 @@ impl ServerReader {
             }
         }
 
-        if let Some(formatted) = format_public_text_from(trimmed) {
-            println!("{}", formatted);
-        } else if let Some(formatted) = format_private_text_from(trimmed) {
-            println!("{}", formatted);
-        } else {
-            print!("{}", raw);
+        let value: Value = match serde_json::from_str(trimmed) {
+            Ok(v) => v,
+            Err(_) => {
+                print!("{}", raw);
+                return;
+            }
+        };
+
+        let msg_type = value.get("type").and_then(Value::as_str);
+
+        match msg_type {
+            Some("NEW_USER") => {
+                if let Some(username) = value.get("username").and_then(Value::as_str) {
+                    println!("{} se unio al chat", self.colorized_username(username));
+                } else {
+                    print!("{}", raw);
+                }
+            }
+            Some("PUBLIC_TEXT_FROM") => {
+                let username = value.get("username").and_then(Value::as_str);
+                let text = value.get("text").and_then(Value::as_str);
+                if let (Some(username), Some(text)) = (username, text) {
+                    println!("{}: {}", self.colorized_username(username), text);
+                } else {
+                    print!("{}", raw);
+                }
+            }
+            Some("TEXT_FROM") => {
+                let username = value.get("username").and_then(Value::as_str);
+                let text = value.get("text").and_then(Value::as_str);
+                if let (Some(username), Some(text)) = (username, text) {
+                    println!("[privado] {}: {}", self.colorized_username(username), text);
+                } else {
+                    print!("{}", raw);
+                }
+            }
+            _ => {
+                print!("{}", raw);
+            }
         }
+    }
+
+    fn colorized_username(&mut self, username: &str) -> String {
+        let idx = if let Some(existing) = self.username_colors.get(username) {
+            *existing
+        } else {
+            let assigned = self.next_color;
+            self.username_colors.insert(username.to_string(), assigned);
+            self.next_color = (self.next_color + 1) % USER_COLORS.len();
+            assigned
+        };
+
+        format!("{}{}{}", USER_COLORS[idx], username, ANSI_RESET)
     }
 }
