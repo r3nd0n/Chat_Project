@@ -120,6 +120,13 @@ impl ServerReader {
                     print!("{}", raw);
                 }
             }
+            Some("DISCONNECTED") => {
+                if let Some(username) = value.get("username").and_then(Value::as_str) {
+                    println!("{} se desconecto del chat", self.colorized_username(username));
+                } else {
+                    print!("{}", raw);
+                }
+            }
             _ => {
                 print!("{}", raw);
             }

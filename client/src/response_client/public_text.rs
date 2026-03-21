@@ -1,9 +1,13 @@
 use serde_json::json;
-use serde_json::Value;
+use crate::response_client::disconnect::disconnect_request;
 use crate::response_client::users::get_users;
 use crate::response_client::status::new_status;
 
 pub fn send_msg(message: &str) -> Result<String, &'static str> {
+    if message == "/disconnect" {
+        return Ok(disconnect_request());
+    }
+
     if message == "/users" {
         return Ok(get_users());
     }
@@ -58,30 +62,16 @@ fn parse_status_command(message: &str) -> Option<String> {
     Some(new_status(&status))
 }
 
-pub fn format_public_text_from(raw: &str) -> Option<String> {
-    let value: Value = serde_json::from_str(raw).ok()?;
-    let msg_type = value.get("type")?.as_str()?;
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::Value;
 
-    if msg_type != "PUBLIC_TEXT_FROM" {
-        return None;
+    #[test]
+    fn disconnect_command_maps_to_disconnect_payload() {
+        let payload = send_msg("/disconnect").expect("/disconnect debe generar payload");
+        let json: Value = serde_json::from_str(payload.trim()).expect("JSON invalido");
+
+        assert_eq!(json["type"], "DISCONNECT");
     }
-
-    let username = value.get("username")?.as_str()?;
-    let text = value.get("text")?.as_str()?;
-
-    Some(format!("{}: {}", username, text))
-}
-
-pub fn format_private_text_from(raw: &str) -> Option<String> {
-    let value: Value = serde_json::from_str(raw).ok()?;
-    let msg_type = value.get("type")?.as_str()?;
-
-    if msg_type != "TEXT_FROM" {
-        return None;
-    }
-
-    let username = value.get("username")?.as_str()?;
-    let text = value.get("text")?.as_str()?;
-
-    Some(format!("[privado] {}: {}", username, text))
 }

@@ -8,7 +8,6 @@ pub struct Identify {
 }
 
 pub struct User {
-    pub username: String,
     pub status: String,
 }
 

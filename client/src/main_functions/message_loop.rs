@@ -16,6 +16,8 @@ pub fn message_loop(mut stream: TcpStream) {
             continue;
         }
 
+        let should_disconnect = message == "/disconnect";
+
         let json = match send_msg(message) {
             Ok(payload) => payload,
             Err(msg) => {
@@ -25,6 +27,10 @@ pub fn message_loop(mut stream: TcpStream) {
         };
         if let Err(e) = stream.write_all(json.as_bytes()) {
             eprintln!("Err. escritura al servidor: {e}");
+            break;
+        }
+
+        if should_disconnect {
             break;
         }
     }
