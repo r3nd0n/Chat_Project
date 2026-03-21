@@ -1,0 +1,26 @@
+services:
+  # Servicio del servidor de chat.
+  chat-server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    image: chat-project-server:latest
+    container_name: chat-server
+    ports:
+      # Expone el puerto del contenedor al host local.
+      - "8080:8080"
+    restart: unless-stopped
+
+  # Cliente interactivo para conectarse al servidor.
+  chat-client:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    image: chat-project-client:latest
+    container_name: chat-client
+    depends_on:
+      - chat-server
+    # Habilita modo interactivo en terminal.
+    stdin_open: true
+    tty: true
+    command: ["client", "chat-server:8080"]
