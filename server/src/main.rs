@@ -1,17 +1,14 @@
 use std::{
         collections::HashMap,
         env,
+    io::ErrorKind,
         net::TcpListener,
         sync::{Arc, Mutex}, // Para manejar los hilos que usan la misma estructura (Atomic Reference Counted).
         };
 
-//mod client_manager;
-//mod conection_iterator;
 mod response_chat;
 mod main_functions;
-//mod users_collection;
 mod structs_chat;
-
 use crate::main_functions::client_manager::ConnectedClients;
 use crate::main_functions::conection_iterator::stream_iterator;
 use crate::main_functions::users_collection::ListOfUsers;
@@ -26,8 +23,18 @@ fn main() {
 
     let direction = &arguments[1];
 
-    let listener = TcpListener::bind(direction)
-        .expect("Conexión fallida.");
+    let listener = match TcpListener::bind(direction) {
+        Ok(listener) => listener,
+        Err(error) if error.kind() == ErrorKind::AddrInUse => {
+            eprintln!("No se pudo iniciar el servidor: la dirección {direction} ya está en uso.");
+            eprintln!("Cierra el proceso que usa ese puerto o inicia el servidor con otro puerto.");
+            return;
+        }
+        Err(error) => {
+            eprintln!("No se pudo iniciar el servidor en {direction}: {error}");
+            return;
+        }
+    };
 
     // Diccionario global de usuarios (compartido entre threads)
     let users = Arc::new(Mutex::new(ListOfUsers::new()));

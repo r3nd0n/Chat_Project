@@ -15,6 +15,7 @@ use crate::response_chat::private_text::{
     private_text_no_such_user,
 };
 use crate::response_chat::public_text::msg_response;
+use crate::response_chat::status::new_status_response;
 use crate::response_chat::users::get_list;
 use crate::structs_chat::user::{parse_identify, User};
 use crate::main_functions::users_collection::ListOfUsers;
@@ -139,6 +140,29 @@ fn handle_request(
         "USERS" => {
             identified_username.as_ref()?;
             Some(get_list(users))
+        }
+        "STATUS" => {
+            let sender = identified_username.as_ref()?;
+            let requested_status = base_msg.get("status").and_then(Value::as_str)?;
+            let normalized_status = requested_status.trim().to_uppercase();
+
+            if !matches!(normalized_status.as_str(), "ACTIVE" | "AWAY" | "BUSY") {
+                return None;
+            }
+
+            if let Ok(mut guard) = users.lock() {
+                if let Some(user) = guard.get_usr_mut(sender) {
+                    user.status = normalized_status.clone();
+                } else {
+                    return None;
+                }
+            } else {
+                return None;
+            }
+
+            let new_status_message = new_status_response(&normalized_status, sender);
+            broadcast_except(sender, &new_status_message, connected_clients);
+            None
         }
         _ => None,
     }
@@ -352,5 +376,78 @@ mod tests {
         assert_eq!(json["type"], "TEXT_FROM");
         assert_eq!(json["username"], "Alice");
         assert_eq!(json["text"], "Secreto");
+    }
+
+    #[test]
+    fn status_updates_user_and_broadcasts_new_status() {
+        let (writer_server, _writer_client) = tcp_pair();
+        let (recipient_server, mut recipient_client) = tcp_pair();
+
+        recipient_client
+            .set_read_timeout(Some(Duration::from_millis(500)))
+            .expect("No se pudo configurar timeout");
+
+        let users = Arc::new(Mutex::new(ListOfUsers::new()));
+        {
+            let mut guard = users.lock().expect("No se pudo bloquear users");
+            guard.add_usr(
+                "Alice".to_string(),
+                User {
+                    username: "Alice".to_string(),
+                    status: "ACTIVE".to_string(),
+                },
+            );
+            guard.add_usr(
+                "Bob".to_string(),
+                User {
+                    username: "Bob".to_string(),
+                    status: "ACTIVE".to_string(),
+                },
+            );
+        }
+
+        let connected_clients: Arc<Mutex<ConnectedClients>> = Arc::new(Mutex::new(HashMap::new()));
+        {
+            let mut guard = connected_clients
+                .lock()
+                .expect("No se pudo bloquear connected_clients");
+            guard.insert("Bob".to_string(), Arc::new(Mutex::new(recipient_server)));
+        }
+
+        let writer_stream = Arc::new(Mutex::new(writer_server));
+        let mut identified_username = Some("Alice".to_string());
+
+        let raw = r#"{ "type":"STATUS", "status":"away" }"#;
+        let response = handle_request(
+            raw,
+            &users,
+            &connected_clients,
+            &writer_stream,
+            &mut identified_username,
+        );
+
+        assert!(response.is_none());
+
+        let current_status = users
+            .lock()
+            .expect("No se pudo bloquear users")
+            .get_usr("Alice")
+            .expect("Alice debe existir")
+            .status
+            .clone();
+        assert_eq!(current_status, "AWAY");
+
+        let mut buffer = [0_u8; 512];
+        let n = recipient_client
+            .read(&mut buffer)
+            .expect("No se pudo leer mensaje de status");
+        assert!(n > 0);
+
+        let payload = String::from_utf8_lossy(&buffer[..n]);
+        let json: Value = serde_json::from_str(payload.trim()).expect("JSON invalido recibido");
+
+        assert_eq!(json["type"], "NEW_STATUS");
+        assert_eq!(json["username"], "Alice");
+        assert_eq!(json["status"], "AWAY");
     }
 }

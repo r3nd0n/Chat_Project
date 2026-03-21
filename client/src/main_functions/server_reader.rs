@@ -111,6 +111,15 @@ impl ServerReader {
                     print!("{}", raw);
                 }
             }
+            Some("NEW_STATUS") => {
+                let username = value.get("username").and_then(Value::as_str);
+                let status = value.get("status").and_then(Value::as_str);
+                if let (Some(username), Some(status)) = (username, status) {
+                    println!("{} cambio su estado a {}", self.colorized_username(username), status);
+                } else {
+                    print!("{}", raw);
+                }
+            }
             _ => {
                 print!("{}", raw);
             }

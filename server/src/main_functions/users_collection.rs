@@ -35,6 +35,10 @@ impl ListOfUsers {
   pub fn get_usr(&self, username: &str) -> Option<&User> {
     self.list.get(username)
   }
+
+  pub fn get_usr_mut(&mut self, username: &str) -> Option<&mut User> {
+    self.list.get_mut(username)
+  }
 }
 
 

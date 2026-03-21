@@ -1,10 +1,16 @@
 use serde_json::json;
 use serde_json::Value;
 use crate::response_client::users::get_users;
+use crate::response_client::status::new_status;
 
 pub fn send_msg(message: &str) -> Result<String, &'static str> {
     if message == "/users" {
         return Ok(get_users());
+    }
+
+    if message.starts_with("/status") {
+        return parse_status_command(message)
+            .ok_or("Uso: /status <ACTIVE|AWAY|BUSY>");
     }
 
     if message.starts_with("/w") {
@@ -40,6 +46,16 @@ fn parse_private_command(message: &str) -> Option<String> {
         .to_string()
             + "\n",
     )
+}
+
+fn parse_status_command(message: &str) -> Option<String> {
+    let status = message.strip_prefix("/status ")?.trim().to_uppercase();
+
+    if !matches!(status.as_str(), "ACTIVE" | "AWAY" | "BUSY") {
+        return None;
+    }
+
+    Some(new_status(&status))
 }
 
 pub fn format_public_text_from(raw: &str) -> Option<String> {
