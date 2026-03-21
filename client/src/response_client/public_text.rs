@@ -1,0 +1,77 @@
+use serde_json::json;
+use crate::response_client::disconnect::disconnect_request;
+use crate::response_client::users::get_users;
+use crate::response_client::status::new_status;
+
+pub fn send_msg(message: &str) -> Result<String, &'static str> {
+    if message == "/disconnect" {
+        return Ok(disconnect_request());
+    }
+
+    if message == "/users" {
+        return Ok(get_users());
+    }
+
+    if message.starts_with("/status") {
+        return parse_status_command(message)
+            .ok_or("Uso: /status <ACTIVE|AWAY|BUSY>");
+    }
+
+    if message.starts_with("/w") {
+        return parse_private_command(message).ok_or("Uso: /w <usuario> <mensaje>");
+    }
+
+    Ok(
+        json!({
+        "type": "PUBLIC_TEXT",
+        "text": message,
+    })
+    .to_string()
+            + "\n",
+    )
+}
+
+fn parse_private_command(message: &str) -> Option<String> {
+    let rest = message.strip_prefix("/w ")?;
+    let mut parts = rest.splitn(2, ' ');
+    let username = parts.next()?.trim();
+    let text = parts.next()?.trim();
+
+    if username.is_empty() || text.is_empty() {
+        return None;
+    }
+
+    Some(
+        json!({
+            "type": "TEXT",
+            "username": username,
+            "text": text,
+        })
+        .to_string()
+            + "\n",
+    )
+}
+
+fn parse_status_command(message: &str) -> Option<String> {
+    let status = message.strip_prefix("/status ")?.trim().to_uppercase();
+
+    if !matches!(status.as_str(), "ACTIVE" | "AWAY" | "BUSY") {
+        return None;
+    }
+
+    Some(new_status(&status))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::Value;
+
+    #[test]
+    fn disconnect_command_maps_to_disconnect_payload() {
+        let payload = send_msg("/disconnect").expect("/disconnect debe generar payload");
+        let json: Value = serde_json::from_str(payload.trim()).expect("JSON invalido");
+
+        assert_eq!(json["type"], "DISCONNECT");
+    }
+}

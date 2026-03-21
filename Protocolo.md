@@ -1,4 +1,4 @@
-Protocolo para el chat
+SProtocolo para el chat
 ======================
 
 Mensajes que recibe el servidor

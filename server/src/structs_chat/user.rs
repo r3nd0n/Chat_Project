@@ -8,8 +8,7 @@ pub struct Identify {
 }
 
 pub struct User {
-    username: String,
-    status: String,
+    pub status: String,
 }
 
 pub fn parse_identify(raw: &str) -> Result<Identify, serde_json::Error> {

@@ -1,56 +1,64 @@
 use std::{
     env,
+    io::Write,
     net::TcpStream,
-    str,
-    io::{self, BufRead, BufReader, Write}
+    sync::mpsc,
+    thread,
 };
-use crate::client_msg::new_usr;
-mod client_response;
 
-//
+mod main_functions;
+mod response_client;
+
+use crate::main_functions::message_loop::message_loop;
+use crate::main_functions::server_reader::ServerReader;
+use crate::main_functions::usr_validation::usr_validation;
+use crate::response_client::identify::new_usr;
+
 fn main() {
-
-    let  arguments: Vec<String> = env::args().collect();
+    
+    let arguments: Vec<String> = env::args().collect();
+    if arguments.len() < 2 {
+        eprintln!("Uso: cargo run -- <host:port>");
+        return;
+    }
     let direction: &String = &arguments[1];
-
     let mut stream = TcpStream::connect(direction)
      .expect("No se pudo conectar a servidor");
 
+    let reader_stream = stream
+        .try_clone()
+        .expect("No se pudo clonar stream para lectura");
+    let (tx, rx) = mpsc::channel();
+
+    thread::spawn(move || {
+        let mut worker = ServerReader::new(reader_stream, tx);
+        worker.run();
+    });
+
     println!("Elige un username: ");
+    let username = usr_validation();
+    let json = new_usr(&username);
 
-    //! El cliente entra en un bucle y espera 
-    //! que escribamos algo por teclado con
-    //! stdin.read_line().
-    //! Eso deja el texto en input.
-    loop {
-        let mut input = String::new();
-        let mut buffer : Vec<u8> = Vec::new();
-
-        io::stdin().read_line(&mut input)
-         .expect("Err. lectura de stdin.");
-        
-        let input = input.trim().to_string();
-        let json = new_usr(&input);
-
-        //! el String JSON se convierte a bytes con as_bytes()
-        //!esos bytes se envían por la conexión TCP al servidor
-        stream.write(json.as_bytes())
-         .expect("Err. escritura al servidor.");
-
-        //! el cliente:
-        //!
-        //! · crea un BufReader
-        //! · usa read_until(b'\n', &mut buffer)
-        //! · espera hasta encontrar el \n final
-        //! · convierte los bytes a texto con from_utf8
-        //! · lo imprime con println!
-        //! Por eso aparece en pantalla el JSON que volvió del servidor.
-        let mut reader = BufReader::new(&stream);
-
-        reader.read_until(b'\n', &mut buffer)
-         .expect("No se puede leer en el buffer");
-
-        println!("{}", str::from_utf8(&buffer)
-         .expect("No se puede escribir el buffer como un string."));
+    if let Err(e) = stream.write_all(json.as_bytes()) {
+        eprintln!("Err. escritura al servidor: {e}");
+        return;
     }
+
+    // Esperar respuesta del servidor sobre IDENTIFY
+    match rx.recv() {
+        Ok(result) => {
+            if result != "SUCCESS" {
+                eprintln!("Identificación fallida: {}", result);
+                return;
+            }
+        }
+        Err(_) => {
+            eprintln!("Error esperando respuesta de identificación.");
+            return;
+        }
+    }
+
+    println!("Bienvenido {}! \nComienza a chatear.", username);
+
+    message_loop(stream);
 }
