@@ -1,0 +1,11 @@
+# Archivos de Git y del editor
+.git
+.gitignore
+.vscode
+
+# Salidas de compilacion de Rust
+**/target
+
+# Otros temporales
+**/*.log
+**/.DS_Store
