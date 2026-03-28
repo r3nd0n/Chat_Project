@@ -2,3 +2,7 @@
 /server/target
 /client/target
 /controller/target
+/doc/report.tex
+/doc/report.log
+/doc/report.out
+/doc/report.aux
